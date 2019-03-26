@@ -51,38 +51,6 @@ struct rt_mailbox mb_udp, mb_alarm;
 static char mb_udp_pool[4], mb_alarm_pool[40];
 
 
-void udp_send_data(char *send_data, u16 len)
-{
-    int sock, port=8089;
-    struct hostent *host;
-    struct sockaddr_in server_addr;
-		char *tmp;
-	
-		tmp=rt_malloc(2004);
-
-    host = (struct hostent *) gethostbyname("192.168.1.255");
-
-    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-    {
-        rt_kprintf("Socket error\n");
-        return;
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr = *((struct in_addr *) host->h_addr);
-    rt_memset(&(server_addr.sin_zero), 0, sizeof(server_addr.sin_zero));
-		
-
-		sendto(sock, send_data, len, 0,
-					 (struct sockaddr *) &server_addr, sizeof(struct sockaddr));
-
-		
-    lwip_close(sock);
-		rt_free(tmp);
-}
-
-
 void rt_init_thread_entry(void* parameter)
 {    
      /* initialization RT-Thread Components */
@@ -122,13 +90,14 @@ void rt_init_thread_entry(void* parameter)
 		extern int phy_register_read(int reg);
 		int value;
 		while(1){
-			//adc_ReadOneSample(0x8310);
 			value=phy_register_read(1);
 			if((value&0x0004) == 0)
-				HAL_GPIO_WritePin(GPIOG, LED14_Pin|CPU_RUN_Pin, GPIO_PIN_SET);
+				;
+				//HAL_GPIO_WritePin(GPIOG, LED14_Pin|CPU_RUN_Pin, GPIO_PIN_SET);
 				//rt_kprintf("link down\n");
 			else
-				HAL_GPIO_WritePin(GPIOG, LED14_Pin|CPU_RUN_Pin, GPIO_PIN_RESET);
+				;
+				//HAL_GPIO_WritePin(GPIOG, LED14_Pin|CPU_RUN_Pin, GPIO_PIN_RESET);
 				//rt_kprintf("link up\n");
 			rt_thread_delay(1000);
 		}
@@ -141,9 +110,11 @@ void rt_system_led_thread_entry(void* parameter)
 { 
 	while(1)
 	{
-		HAL_GPIO_WritePin(GPIOG, LED9_Pin|CPU_RUN_Pin, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(GPIOG, LED9_Pin|CPU_RUN_Pin, GPIO_PIN_SET);
+		CPU_RUN_LED = ON;
 		rt_thread_delay(100);
-		HAL_GPIO_WritePin(GPIOG, LED9_Pin|CPU_RUN_Pin, GPIO_PIN_RESET);
+		//HAL_GPIO_WritePin(GPIOG, LED9_Pin|CPU_RUN_Pin, GPIO_PIN_RESET);
+		CPU_RUN_LED = OFF;
 		rt_thread_delay(100);
 	}
 }
