@@ -162,6 +162,61 @@ void green_led_control(int pin, rt_bool_t value){
 				}
 }
 
+void switch_control(int pin, rt_bool_t value){
+		switch(pin){
+					case 0:
+						SWITCH1=value;
+						break;
+					case 1:
+						SWITCH2=value;
+						break;
+					case 2:
+						SWITCH3=value;
+						break;
+					case 3:
+						SWITCH4=value;
+						break;
+					case 4:
+						SWITCH5=value;
+						break;
+					case 5:
+						SWITCH6=value;
+						break;
+					case 6:
+						SWITCH7=value;
+						break;
+					case 7:
+						SWITCH8=value;
+						break;
+					case 8:
+						SWITCH9=value;
+						break;
+					case 9:
+						SWITCH10=value;
+						break;
+					case 10:
+						SWITCH11=value;
+						break;
+					case 11:
+						SWITCH12=value;
+						break;
+					case 12:
+						SWITCH13=value;
+						break;
+					case 13:
+						SWITCH14=value;
+						break;
+					case 14:
+						SWITCH15=value;
+						break;
+					case 15:
+						SWITCH16=value;
+						break;
+					default:
+						break;
+				}
+}
+
 /*********************************************************
 * 函数名：heartbeat_check
 * 
@@ -196,6 +251,7 @@ void response(int sock, int cmd, struct sockaddr *client_addr, int addr_len)
 * 
 * 功  能：处理接收到的命令
 *********************************************************/
+extern TIM_HandleTypeDef htim10;
 void cmd_process(int sock, Cmd_Data *cd, struct sockaddr *client_addr, int addr_len)
 {
 		int zone_id = 2*cd->device_id+cd->zone_id;
@@ -207,11 +263,14 @@ void cmd_process(int sock, Cmd_Data *cd, struct sockaddr *client_addr, int addr_
 			//报警信号
 			case CMD_ALARM:{
 				red_led_control(zone_id, ON);
+				switch_control(zone_id, ON);
+				HAL_TIM_PWM_Start(&htim10,TIM_CHANNEL_1); //开启蜂鸣器
 				break;
 			}
 			//光功率过低故障
 			case CMD_POWER_LOWER:{
 				green_led_control(zone_id, OFF);
+				HAL_TIM_PWM_Start(&htim10,TIM_CHANNEL_1); //开启蜂鸣器
 				break;
 			}
 			default:
@@ -343,4 +402,24 @@ void udp_send_data(char *send_data, int len)
 		
     lwip_close(sock);
 		rt_free(tmp);
+}
+
+void EXTI3_IRQHandler(void)
+{
+		rt_interrupt_enter();
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+		rt_interrupt_leave();
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+		int i;
+		if(GPIO_Pin == GPIO_PIN_3)
+		{
+			for(i=0; i<16; i++){
+				red_led_control(i, OFF);
+				switch_control(i, OFF);
+			}
+			HAL_TIM_PWM_Stop(&htim10,TIM_CHANNEL_1); //关闭蜂鸣器
+		}
 }
